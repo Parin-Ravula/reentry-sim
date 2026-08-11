@@ -36,157 +36,114 @@ class Environment:
         return atmosphere_data
 
 
-    def get_density(self, altitude: float) -> float:
-        """
-        Retrieves the atmospheric density at a given altitude.
+def get_atmospheric_value(self, altitude: float) -> dict:
+    """
+    Retrieves atmospheric values at a given altitude.
 
-        Parameters:
-            Self: The environment object.
-            altitude (float): The altitude (m) in meters.
+    Parameters:
+        Self: The environment object.
+        altitude (float): The altitude (m) in meters.
 
-        Returns:
-            float: The atmospheric density (kg/m^3) at the specified altitude.
-        """
-        if altitude <= self.atmosphere_data[0]['altitude']:
-            print(f"NOTE: Density value at {altitude} may not be accurate")
-            return self.atmosphere_data[0]['density']
-    
-        if altitude >= self.atmosphere_data[-1]['altitude']:
-            print(f"NOTE: Density value at {altitude} may not be accurate")
-            return self.atmosphere_data[-1]['density']
+    Returns:
+        dict: Atmospheric values at the specified altitude.
+        - float: Altitude (m)
+        - float: Temperature (K)
+        - float: Pressure (Pa)
+        - float: Density (kg/m3)
+        - float: Speed of Sound (m/s)
+        - float: Dynamic Viscosity (Pa/s) 
+    """
 
-        upper_index = 0
-        lower_index = 0
-        while altitude >= self.atmosphere_data[upper_index]['altitude']:
-            if altitude == self.atmosphere_data[upper_index]['altitude']:
-                return self.atmosphere_data[upper_index]['density']
-            upper_index += 1
-        lower_index = upper_index - 1
+    def interpolate(lower_value, upper_value, lower_altitude, upper_altitude):
+        return (((upper_value - lower_value) /
+                (upper_altitude - lower_altitude)) *
+                (altitude - lower_altitude) + lower_value)
 
-        lower_altitude = self.atmosphere_data[lower_index]['altitude']
-        upper_altitude = self.atmosphere_data[upper_index]['altitude']
-        lower_density = self.atmosphere_data[lower_index]['density']
-        upper_density = self.atmosphere_data[upper_index]['density']
+    if altitude <= self.atmosphere_data[0]['altitude']:
+        print(f"NOTE: Atmospheric values at {altitude} may not be accurate")
+        data = self.atmosphere_data[0]
 
-        interpolated_density = (((upper_density - lower_density) / 
-                                 (upper_altitude - lower_altitude)) * 
-                                 (altitude - lower_altitude) + lower_density)
-        return interpolated_density
+        return {
+            'altitude': altitude,
+            'temperature': data['temperature'],
+            'pressure': data['pressure'],
+            'density': data['density'],
+            'speed_of_sound': data['speed_of_sound'],
+            'dynamic_viscosity': data['dynamic_viscosity']
+        }
 
+    if altitude >= self.atmosphere_data[-1]['altitude']:
+        print(f"NOTE: Atmospheric values at {altitude} may not be accurate")
+        data = self.atmosphere_data[-1]
+        return {
+            'altitude': altitude,
+            'temperature': data['temperature'],
+            'pressure': data['pressure'],
+            'density': data['density'],
+            'speed_of_sound': data['speed_of_sound'],
+            'dynamic_viscosity': data['dynamic_viscosity']
+        }
 
-    def get_pressure(self, altitude: float) -> float:
-        """
-        Retrieves the atmospheric pressure at a given altitude.
+    upper_index = 0
 
-        Parameters:
-            Self: The environment object.
-            altitude (float): The altitude (m) in meters.
+    while altitude >= self.atmosphere_data[upper_index]['altitude']:
+        if altitude == self.atmosphere_data[upper_index]['altitude']:
+            data = self.atmosphere_data[upper_index]
+            return {
+                'altitude': altitude,
+                'temperature': data['temperature'],
+                'pressure': data['pressure'],
+                'density': data['density'],
+                'speed_of_sound': data['speed_of_sound'],
+                'dynamic_viscosity': data['dynamic_viscosity']
+            }
+        upper_index += 1
 
-        Returns:
-            float: The atmospheric pressure (Pa) at the specified altitude.
-        """
-        if altitude <= self.atmosphere_data[0]['altitude']:
-            print(f"NOTE: Pressure value at {altitude} may not be accurate")
-            return self.atmosphere_data[0]['pressure']
-    
-        if altitude >= self.atmosphere_data[-1]['altitude']:
-            print(f"NOTE: Pressure value at {altitude} may not be accurate")
-            return self.atmosphere_data[-1]['pressure']
+    lower_index = upper_index - 1
 
-        upper_index = 0
-        lower_index = 0
-        while altitude >= self.atmosphere_data[upper_index]['altitude']:
-            if altitude == self.atmosphere_data[upper_index]['altitude']:
-                return self.atmosphere_data[upper_index]['pressure']
-            upper_index += 1
-        lower_index = upper_index - 1
+    lower_data = self.atmosphere_data[lower_index]
+    upper_data = self.atmosphere_data[upper_index]
 
-        lower_altitude = self.atmosphere_data[lower_index]['altitude']
-        upper_altitude = self.atmosphere_data[upper_index]['altitude']
-        lower_pressure = self.atmosphere_data[lower_index]['pressure']
-        upper_pressure = self.atmosphere_data[upper_index]['pressure']
+    lower_altitude = lower_data['altitude']
+    upper_altitude = upper_data['altitude']
 
-        interpolated_pressure = (((upper_pressure - lower_pressure) / 
-                                 (upper_altitude - lower_altitude)) * 
-                                 (altitude - lower_altitude) + lower_pressure)
-        return interpolated_pressure
+    return {
+        'altitude': altitude,
 
-    
-    def get_temperature(self, altitude: float) -> float:
-        """
-        Retrieves the temperature at a given altitude.
-        
-        Parameters:
-            Self: The environment object.
-            altitude (float): The altitude (m) in meters.
-        
-        Returns:
-            float: The temperature (K) at the specified altitude.
-        """
-        if altitude <= self.atmosphere_data[0]['altitude']:
-            print(f"NOTE: Temperature value at {altitude} may not be accurate")
-            return self.atmosphere_data[0]['temperature']
-    
-        if altitude >= self.atmosphere_data[-1]['altitude']:
-            print(f"NOTE: Temperature value at {altitude} may not be accurate")
-            return self.atmosphere_data[-1]['temperature']
+        'temperature': interpolate(
+            lower_data['temperature'],
+            upper_data['temperature'],
+            lower_altitude,
+            upper_altitude
+        ),
 
-        upper_index = 0
-        lower_index = 0
-        while altitude >= self.atmosphere_data[upper_index]['altitude']:
-            if altitude == self.atmosphere_data[upper_index]['altitude']:
-                return self.atmosphere_data[upper_index]['temperature']
-            upper_index += 1
-        lower_index = upper_index - 1
+        'pressure': interpolate(
+            lower_data['pressure'],
+            upper_data['pressure'],
+            lower_altitude,
+            upper_altitude
+        ),
 
-        lower_altitude = self.atmosphere_data[lower_index]['altitude']
-        upper_altitude = self.atmosphere_data[upper_index]['altitude']
-        lower_temperature = self.atmosphere_data[lower_index]['temperature']
-        upper_temperature = self.atmosphere_data[upper_index]['temperature']
+        'density': interpolate(
+            lower_data['density'],
+            upper_data['density'],
+            lower_altitude,
+            upper_altitude
+        ),
 
-        interpolated_temperature = (((upper_temperature - lower_temperature) / 
-                                 (upper_altitude - lower_altitude)) * 
-                                 (altitude - lower_altitude) + lower_temperature)
-        return interpolated_temperature
+        'speed_of_sound': interpolate(
+            lower_data['speed_of_sound'],
+            upper_data['speed_of_sound'],
+            lower_altitude,
+            upper_altitude
+        ),
+
+        'dynamic_viscosity': interpolate(
+            lower_data['dynamic_viscosity'],
+            upper_data['dynamic_viscosity'],
+            lower_altitude,
+            upper_altitude
+        )
+    } 
 
 
-    def get_atmospheric_value(self, altitude: float, data_type: str) -> float:
-        """
-        Retrieves the an atmospherric value at a given altitude.
-        
-        Parameters:
-            Self: The environment object.
-            altitude (float): The altitude (m) in meters.
-        
-        Returns:
-            Any of the following
-            - float: The temperature (K) at the specified altitude.
-            - float: The atmospheric pressure (Pa) at the specified altitude.
-            - float: The atmospheric density (kg/m^3) at the specified altitude.
-        """
-
-        if altitude <= self.atmosphere_data[0]['altitude']:
-            print(f"NOTE: {data_type} value at {altitude} may not be accurate")
-            return self.atmosphere_data[0][data_type]
-    
-        if altitude >= self.atmosphere_data[-1]['altitude']:
-            print(f"NOTE: Temperature value at {altitude} may not be accurate")
-            return self.atmosphere_data[-1][data_type]
-
-        upper_index = 0
-        lower_index = 0
-        while altitude >= self.atmosphere_data[upper_index]['altitude']:
-            if altitude == self.atmosphere_data[upper_index]['altitude']:
-                return self.atmosphere_data[upper_index][data_type]
-            upper_index += 1
-        lower_index = upper_index - 1
-
-        lower_altitude = self.atmosphere_data[lower_index]['altitude']
-        upper_altitude = self.atmosphere_data[upper_index]['altitude']
-        lower_data_type = self.atmosphere_data[lower_index][data_type]
-        upper_data_type = self.atmosphere_data[upper_index][data_type]
-
-        interpolated_data_type = (((upper_data_type - lower_data_type) / 
-                                 (upper_altitude - lower_altitude)) * 
-                                 (altitude - lower_altitude) + lower_data_type)
-        return interpolated_data_type
