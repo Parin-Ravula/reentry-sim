@@ -1,80 +1,94 @@
 """
 Defines the vehicle and vehicle state classes.
 
-Vehicle class stores the physical and aerodynamic properties of the vehicle.
-VehicleState class stores the vehicle's current position and motion.
+Vehicle class stores the physical, aerodynamic, and propulsion properties
+of the vehicle. VehicleState class stores the vehicle's current position,
+motion, and mass throughout the simulation.
 """
 
 import math
+import numpy as np
 
 
 class Vehicle:
     def __init__(
         self,
         name: str,
-        mass: float,
-        nose_radius: float,
+        length: float,
+        diameter: float,
+        dry_mass: float,
+        propellant_mass: float,
         drag_coefficient: float,
         lift_coefficient: float,
+        max_thrust: float,
+        specific_impulse: float,
+        minimum_throttle: float,  # ADD
+        maximum_gimbal_angle: float,  # ADD
     ):
         self.name = name
-        self.mass = mass
-        self.nose_radius = nose_radius
+        self.length = length
+        self.diameter = diameter
+        self.dry_mass = dry_mass
+        self.propellant_mass = propellant_mass
         self.drag_coefficient = drag_coefficient
         self.lift_coefficient = lift_coefficient
+        self.max_thrust = max_thrust
+        self.specific_impulse = specific_impulse
+        self.min_throttle = minimum_throttle
+        self.max_gimbal_angle = maximum_gimbal_angle
 
-    def reference_area(self) -> float:
+    ### Maybe make an input?
+    def reference_area(self):
         """
-        Calculates vehicle's reference area based on its nose radius.
+        Calculates vehicle's reference area.
 
         Parameters:
             Self: The vehicle object.
 
         Returns:
-            float: The reference area of the vehicle.
+            Reference Area (m^2): float
         """
-        return math.pi * self.nose_radius**2
+        return math.pi * (self.diameter / 2) ** 2
 
-    def ballistic_coefficient(self) -> float:
+    def initial_mass(self) -> float:
         """
-        Calculates vehicle's ballistic coefficient based on its mass and reference area.
+        Calculates vehicle's initial total mass.
 
         Parameters:
             Self: The vehicle object.
 
         Returns:
-            float: The ballistic coefficient of the vehicle.
+            Initial Mass (kg): float
         """
-        return self.mass / (self.drag_coefficient * self.reference_area())
+        return self.dry_mass + self.propellant_mass
 
-    def lift_to_drag_ratio(self) -> float:
+    def ballistic_coefficient(self, mass: float, coefficient_drag: float) -> float:
         """
-        Calculates vehicle's lift-to-drag ratio based on its lift and drag coefficients.
+        Calculates vehicle's ballistic coefficient based on its current mass
+        and reference area.
 
         Parameters:
             Self: The vehicle object.
+            mass (float): The current vehicle mass (kg).
+            coefficient_drag (float): The drag coefficient
 
         Returns:
-            float: The lift-to-drag ratio of the vehicle.
+            Ballistic Coefficient (kg/m^2): float
         """
-        return self.lift_coefficient / self.drag_coefficient
+        return mass / (coefficient_drag * self.reference_area())
 
 
 class VehicleState:
     def __init__(
         self,
-        altitude: float,
-        latitude: float,
-        longitude: float,
-        velocity: float,
+        position_vector: np.ndarray,
+        velocity_vector: np.ndarray,
         flight_path_angle: float,
         heading: float,
-        bank_angle: float,
+        mass: float,
     ):
-        self.altitude = altitude
-        self.latitude = latitude
-        self.longitude = longitude
-        self.velocity = velocity
+        self.position_vector = position_vector
+        self.velocity_vector = velocity_vector
         self.flight_path_angle = flight_path_angle
         self.heading = heading
-        self.bank_angle = bank_angle
+        self.mass = mass
