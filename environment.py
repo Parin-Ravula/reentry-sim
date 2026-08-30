@@ -44,7 +44,7 @@ class Environment:
 
         return atmosphere_data
 
-    def get_atmospheric_value(self, altitude: float) -> dict:
+    def get_atmospheric_values(self, altitude: float) -> dict:
         """
         Retrieves atmospheric values at a given altitude.
 

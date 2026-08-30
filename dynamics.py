@@ -14,12 +14,13 @@ import numpy as np
 
 
 class Dynamics:
-    def __init__(self, vehicle: Vehicle, environment: Environment):
+    def __init__(self, vehicle: Vehicle, state: VehicleState, environment: Environment):
         self.vehicle = vehicle
+        self.state = state
         self.environment = environment
 
     ### Helper Functions
-    def calculate_vector_magnitude(self, vector: np.ndarray):
+    def calculate_vector_magnitude(self, vector: np.ndarray) -> float:
         """
         Calculates the magnitude (length) of a 3D vector.
 
@@ -45,6 +46,8 @@ class Dynamics:
         """
         ### Fix for when vehicle at rest
         magnitude = self.calculate_vector_magnitude(vector)
+        if magnitude == 0:
+            return np.array([0, 0, 0])
         return np.array(
             [vector[0] / magnitude, vector[1] / magnitude, vector[2] / magnitude]
         )
@@ -76,7 +79,7 @@ class Dynamics:
         Returns:
             Dynamic Pressure (Pa): float.
         """
-        density = self.environment.get_atmospheric_value(state.position_vector[2])[
+        density = self.environment.get_atmospheric_values(state.position_vector[2])[
             "density"
         ]
 
@@ -95,7 +98,7 @@ class Dynamics:
         Returns:
             Mach Number (dimensionless): float.
         """
-        speed_of_sound = self.environment.get_atmospheric_value(
+        speed_of_sound = self.environment.get_atmospheric_values(
             state.position_vector[2]
         )["speed_of_sound"]
 
@@ -134,10 +137,19 @@ class Dynamics:
         Returns:
             Thrust Force vector (N): np.ndarray.
         """
+        if self.state.mass <= self.vehicle.dry_mass:
+            return np.array([0.0, 0.0, 0.0])
+        if throttle > 0 and self.calculate_vector_magnitude(thrust_direction) == 0:
+            raise ValueError(
+                "thrust_direction has zero magnitude while throttle > 0 — "
+                "commanding nonzero thrust with no defined direction."
+            )
         thrust_direction = self.calculate_unit_vector(thrust_direction)
         return self.vehicle.max_thrust * throttle * thrust_direction
 
-    def acceleration(self, state: VehicleState, net_force: np.ndarray) -> np.ndarray:
+    def acceleration_vector(
+        self, state: VehicleState, net_force: np.ndarray
+    ) -> np.ndarray:
         """
         Calculates acceleration of the vehicle from a net force.
 
@@ -201,7 +213,7 @@ class Dynamics:
             Acceleration vector (m/s^2): np.ndarray.
         """
         net_force = self.net_force(state, throttle, thrust_direction)
-        return self.acceleration(state, net_force)
+        return self.acceleration_vector(state, net_force)
 
     def mass_flow_rate(
         self, thrust_force: np.ndarray, specific_impulse: float, g0: float
@@ -279,4 +291,5 @@ class Dynamics:
             "position_vector": self.position_rate(state),
             "velocity_vector": self.velocity_rate(state, throttle, thrust_direction),
             "mass": mass_rate,
+            # "throttle": state.thrott
         }

@@ -22,8 +22,8 @@ class Vehicle:
         lift_coefficient: float,
         max_thrust: float,
         specific_impulse: float,
-        minimum_throttle: float,  # ADD
-        maximum_gimbal_angle: float,  # ADD
+        # minimum_throttle: float,  # ADD
+        # maximum_gimbal_angle: float,  # ADD
     ):
         self.name = name
         self.length = length
@@ -34,8 +34,8 @@ class Vehicle:
         self.lift_coefficient = lift_coefficient
         self.max_thrust = max_thrust
         self.specific_impulse = specific_impulse
-        self.min_throttle = minimum_throttle
-        self.max_gimbal_angle = maximum_gimbal_angle
+        # self.min_throttle = minimum_throttle
+        # self.max_gimbal_angle = maximum_gimbal_angle
 
     ### Maybe make an input?
     def reference_area(self):
@@ -83,12 +83,8 @@ class VehicleState:
         self,
         position_vector: np.ndarray,
         velocity_vector: np.ndarray,
-        flight_path_angle: float,
-        heading: float,
         mass: float,
     ):
         self.position_vector = position_vector
         self.velocity_vector = velocity_vector
-        self.flight_path_angle = flight_path_angle
-        self.heading = heading
         self.mass = mass
